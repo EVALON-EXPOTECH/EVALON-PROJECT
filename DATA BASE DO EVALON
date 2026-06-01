@@ -1,0 +1,644 @@
+CREATE DATABASE evalon_db;
+USE evalon_db;
+
+CREATE TABLE usuario (
+	id_usuario INT PRIMARY KEY AUTO_INCREMENT,
+	idioma VARCHAR(50),
+	bio TEXT,
+	username VARCHAR(100) UNIQUE NOT NULL,
+	email VARCHAR(150) UNIQUE NOT NULL,
+	senha_hash VARCHAR(255) NOT NULL,
+	data_criacao DATETIME DEFAULT CURRENT_TIMESTAMP,
+	status_conta VARCHAR(15)
+);
+ 
+ CREATE TABLE perfil (
+	id_perfil INT PRIMARY KEY AUTO_INCREMENT,
+	foto_perfil VARCHAR(255),
+	banner VARCHAR(255),
+	nivel_usuario INT DEFAULT 1,
+	xp INT DEFAULT 0
+);
+
+CREATE TABLE tem (
+	fk_usuario_id_usuario INT,
+	fk_perfil_id_perfil INT,
+
+	PRIMARY KEY (
+		fk_usuario_id_usuario,
+		fk_perfil_id_perfil
+	),
+
+	FOREIGN KEY (fk_usuario_id_usuario)
+		REFERENCES usuario(id_usuario),
+
+	FOREIGN KEY (fk_perfil_id_perfil)
+		REFERENCES perfil(id_perfil)
+);
+ 
+ 
+ CREATE TABLE denuncia (
+	id_denuncia INT PRIMARY KEY AUTO_INCREMENT,
+	motivo VARCHAR(255),
+	descricao TEXT,
+	data_hora DATETIME,
+
+	fk_usuario_id_usuario INT,
+
+	FOREIGN KEY (fk_usuario_id_usuario)
+		REFERENCES usuario(id_usuario)
+); 
+
+CREATE TABLE jogo (
+	id_jogo INT PRIMARY KEY AUTO_INCREMENT,
+	nome VARCHAR(150) NOT NULL,
+	descricao TEXT,
+	data_lancamento DATE,
+	classificacao_etaria VARCHAR(50),
+	score_comunidade DECIMAL(5,2),
+	score_ia DECIMAL(5,2),
+	total_avaliacoes INT DEFAULT 0
+); 
+
+CREATE TABLE avaliacao (
+	id_avaliacao INT PRIMARY KEY AUTO_INCREMENT,
+	comentario TEXT,
+	nota_geral DECIMAL(3,1),
+	data_avaliacao DATETIME DEFAULT CURRENT_TIMESTAMP,
+	score_qualidade_ia DECIMAL(5,2),
+
+	fk_jogo_id_jogo INT,
+	fk_usuario_id_usuario INT,
+
+	FOREIGN KEY (fk_jogo_id_jogo)
+		REFERENCES jogo(id_jogo),
+
+	FOREIGN KEY (fk_usuario_id_usuario)
+		REFERENCES usuario(id_usuario)
+); 
+
+CREATE TABLE comentario_review (
+	id_comentario INT PRIMARY KEY AUTO_INCREMENT,
+	data_comentario DATETIME,
+	texto TEXT,
+	data_hora DATETIME,
+
+	fk_avaliacao_id_avaliacao INT,
+	fk_usuario_id_usuario INT,
+
+	FOREIGN KEY (fk_avaliacao_id_avaliacao)
+		REFERENCES avaliacao(id_avaliacao),
+
+	FOREIGN KEY (fk_usuario_id_usuario)
+		REFERENCES usuario(id_usuario)
+);
+
+CREATE TABLE recomendacao (
+	id_recomendacao INT PRIMARY KEY AUTO_INCREMENT,
+	score_relevancia DECIMAL(5,2),
+
+	fk_usuario_id_usuario INT,
+
+	FOREIGN KEY (fk_usuario_id_usuario)
+		REFERENCES usuario(id_usuario)
+);
+ 
+ CREATE TABLE analise_ia (
+	id_analise INT PRIMARY KEY AUTO_INCREMENT,
+	sentimento_positivo_negativo VARCHAR(50),
+	score_sentimento DECIMAL(5,2),
+	resumo_gerado TEXT,
+	data_analise DATETIME,
+
+	fk_avaliacao_id_avaliacao INT,
+
+	FOREIGN KEY (fk_avaliacao_id_avaliacao)
+		REFERENCES avaliacao(id_avaliacao)
+); 
+
+CREATE TABLE moderacao_ia (
+	id_moderacao INT PRIMARY KEY AUTO_INCREMENT,
+	tipo_flag VARCHAR(100),
+	score DECIMAL(5,2),
+	acao VARCHAR(100),
+
+	fk_avaliacao_id_avaliacao INT,
+
+	FOREIGN KEY (fk_avaliacao_id_avaliacao)
+		REFERENCES avaliacao(id_avaliacao)
+);
+
+CREATE TABLE modelo_ia (
+	id_modelo INT PRIMARY KEY AUTO_INCREMENT,
+	nome_modelo VARCHAR(100),
+
+	fk_analise_id_analise INT,
+	fk_recomendacao_id_recomendacao INT,
+
+	FOREIGN KEY (fk_analise_id_analise)
+		REFERENCES analise_ia(id_analise),
+
+	FOREIGN KEY (fk_recomendacao_id_recomendacao)
+		REFERENCES recomendacao(id_recomendacao)
+);
+
+CREATE TABLE genero (
+    id_genero INT PRIMARY KEY AUTO_INCREMENT,
+    nome VARCHAR(100)
+);  
+
+CREATE TABLE subgenero (
+	id_subgenero INT PRIMARY KEY AUTO_INCREMENT,
+	nome VARCHAR(100),
+
+	fk_genero_id_genero INT,
+
+	FOREIGN KEY (fk_genero_id_genero)
+		REFERENCES genero(id_genero)
+);
+  
+  
+  CREATE TABLE tag (
+	id_tag INT PRIMARY KEY AUTO_INCREMENT,
+	nome VARCHAR(100)
+); 
+
+CREATE TABLE associado_a (
+	fk_jogo_id_jogo INT,
+	fk_tag_id_tag INT,
+
+	PRIMARY KEY (
+		fk_jogo_id_jogo,
+		fk_tag_id_tag
+	),
+
+	FOREIGN KEY (fk_jogo_id_jogo)
+		REFERENCES jogo(id_jogo),
+
+	FOREIGN KEY (fk_tag_id_tag)
+		REFERENCES tag(id_tag)
+);  
+
+CREATE TABLE plataforma (
+	id_plataforma INT PRIMARY KEY AUTO_INCREMENT,
+	nome VARCHAR(100) 
+); 
+
+CREATE TABLE disponivel_em (
+	fk_jogo_id_jogo INT,
+	fk_plataforma_id_plataforma INT,
+
+	PRIMARY KEY (
+		fk_jogo_id_jogo,
+		fk_plataforma_id_plataforma
+	),
+
+	FOREIGN KEY (fk_jogo_id_jogo)
+		REFERENCES jogo(id_jogo),
+
+	FOREIGN KEY (fk_plataforma_id_plataforma)
+		REFERENCES plataforma(id_plataforma)
+); 
+
+CREATE TABLE empresa (
+	id_empresa INT PRIMARY KEY AUTO_INCREMENT,
+	nome VARCHAR(150),
+	tipo_dev_publisher VARCHAR(100)
+);  
+
+CREATE TABLE publica (
+	fk_empresa_id_empresa INT,
+	fk_jogo_id_jogo INT,
+
+	PRIMARY KEY (
+		fk_empresa_id_empresa,
+		fk_jogo_id_jogo
+	),
+
+	FOREIGN KEY (fk_empresa_id_empresa)
+		REFERENCES empresa(id_empresa),
+
+	FOREIGN KEY (fk_jogo_id_jogo)
+		REFERENCES jogo(id_jogo)
+);  
+
+CREATE TABLE desenvolve (
+	fk_empresa_id_empresa INT,
+	fk_jogo_id_jogo INT,
+
+	PRIMARY KEY (
+		fk_empresa_id_empresa,
+		fk_jogo_id_jogo
+	),
+
+	FOREIGN KEY (fk_empresa_id_empresa)
+		REFERENCES empresa(id_empresa),
+
+	FOREIGN KEY (fk_jogo_id_jogo)
+		REFERENCES jogo(id_jogo)
+);
+
+INSERT INTO genero (nome)
+VALUES ('Ação'), ('Combate'), ('Aventura'), ('Survival'), ('RPG'), ('Estratégia'), ('Simulação'), ('Esportes'), ('Corrida'), ('Ritmo'), ('Sandbox'), ('MMORPG'), ('Roguelike'), ('Quebra-Cabeça'), ('Terror'), ('Plataforma'), ('Sandbox'), ('Musical'), ('Arcade'), ('Luta'), ('Battle Royale'), ('MMO'), ('Casual'), ('Educacional'), ('Cartas'), ('Visual Novel'), ('Stealth'), ('Party'), ('Idle'), ('Hack and Slash');
+
+INSERT INTO subgenero (nome)
+VALUES ('FPS'), ('TPS'), ('Hack and Slash'), ('Beat em Up'), ('Soulslike'), ('Metroidvania'), ('Roguelike'), ('Roguelite'), ('MMORPG'), ('JRPG'), ('ARPG'), ('Tactical RPG'), ('RTS'), ('Tower Defense'), ('Grand Strategy'), ('City Builder'), ('Simulador de Caminhão'), ('Simulador de Ônibus'), ('Simulador de Voo'), ('Simulador de Fazenda'), ('Simulador de Vida'), ('Simulador Militar'), ('Simulador de Corrida'), ('Mundo Aberto'), ('Parkour'), ('Survival Horror'), ('Extraction Shooter'), ('Hero Shooter'), ('Arena Shooter'), ('Auto Battler'), ('MOBA'), ('Card Battler'), ('Deckbuilder'), ('Rhythm Game'), ('Point and Click'), ('Dating Sim'), ('Sandbox Criativo'), ('Crafting'), ('Cozy Game'), ('Dungeon Crawler'), ('Bullet Hell'), ('Battle Simulator'), ('Tycoon'), ('Racing Sim'), ('Kart Racing'), ('Detective'), ('Narrativo'), ('PvP Competitivo'), ('PvE Cooperativo');
+
+INSERT INTO tag (nome)
+VALUES
+('Mundo Aberto'), ('Co-op'), ('PvP'), ('PvE'), ('Online'), ('Offline'), ('Multiplayer'), ('Singleplayer'), ('Crossplay'), ('Fantasia'), ('Ficção Científica'), ('Medieval'), ('Pós-Apocalíptico'), ('Cyberpunk'), ('Anime'), ('Realista'), ('Pixel Art'), ('2D'), ('3D'), ('Voxel'), ('Low Poly'), ('História Rica'), ('Escolhas Importam'), ('Exploração'), ('Crafting'), ('Loot'), ('Permadeath'), ('Parkour'), ('Construção'), ('Gerenciamento'), ('Economia'), ('Sobrevivência'), ('Tático'), ('Competitivo'), ('Casual'), ('Difícil'), ('Relaxante'), ('Rápido'), ('Violento'), ('Narrativo'), ('Sandbox'), ('Procedural'), ('Mod Support'), ('Controller Support'), ('VR'), ('Futurista'), ('Espacial'), ('Zumbis'), ('Magia'), ('Dragões'), ('Piratas'), ('Militar'), ('Corrida Arcade'), ('Simulação Realista'), ('Steampunk'), ('Mistério'), ('Detetive'), ('Terror Psicológico'), ('Cozy'), ('Gacha'), ('Turnos'), ('Tempo Real');
+
+INSERT INTO plataforma (nome)
+VALUES
+('PC'), ('PlayStation 1'), ('PlayStation 2'), ('PlayStation 3'), ('PlayStation 4'), ('PlayStation 5'), ('Xbox'), ('Xbox 360'), ('Xbox One'), ('Xbox Series S/X'), ('Nintendo Switch'), ('Nintendo Wii'), ('Nintendo Wii U'), ('Nintendo DS'), ('Nintendo 3DS'), ('Game Boy'), ('PSP'), ('PS Vita'), ('Android'), ('iOS'), ('Linux'), ('MacOS'), ('Steam Deck'), ('Web Browser');
+
+
+UPDATE empresa
+SET tipo_dev_publisher = 'Developer/Publisher'
+WHERE id_empresa = 1;
+
+INSERT INTO jogo 
+(nome, descricao, data_lancamento, classificacao_etaria)
+VALUES
+
+(
+'GTA V',
+'Jogo de ação e mundo aberto focado em crimes, exploração e narrativa criminal em Los Santos.',
+'2013-09-17',
+'18'
+), 
+(
+'Red Dead Redemption 2',
+'Aventura em mundo aberto ambientada no velho oeste com foco em narrativa e sobrevivência.',
+'2018-10-26',
+'18'
+), 
+(
+'Valorant',
+'FPS tático competitivo com agentes e habilidades únicas.',
+'2020-06-02',
+'14'
+),
+(
+'League of Legends',
+'MOBA competitivo baseado em estratégia e trabalho em equipe.',
+'2009-10-27',
+'12'
+),
+(
+'Counter-Strike 2',
+'FPS competitivo focado em precisão, estratégia e partidas táticas.',
+'2023-09-27',
+'16'
+),
+(
+'Dota 2',
+'MOBA estratégico com grande foco competitivo.',
+'2013-07-09',
+'12'
+),
+(
+'Half-Life',
+'FPS narrativo de ficção científica revolucionário.',
+'1998-11-19',
+'16'
+),
+(
+'Cyberpunk 2077',
+'RPG futurista de mundo aberto ambientado em Night City.',
+'2020-12-10',
+'18'
+),
+(
+'The Witcher 3',
+'RPG de fantasia medieval focado em narrativa e exploração.',
+'2015-05-19',
+'18'
+),
+(
+'EA Sports FC 25',
+'Simulador de futebol competitivo e online.',
+'2024-09-27',
+'Livre'
+),
+(
+'Battlefield 2042',
+'FPS militar focado em guerras de larga escala.',
+'2021-11-19',
+'16'
+),
+(
+'The Sims 4',
+'Simulador de vida com criação e gerenciamento de personagens.',
+'2014-09-02',
+'12'
+),
+(
+'Call of Duty: Warzone',
+'Battle Royale militar online com foco competitivo.',
+'2020-03-10',
+'18'
+),
+(
+'Call of Duty: Modern Warfare III',
+'FPS militar com campanha e multiplayer competitivo.',
+'2023-11-10',
+'18'
+),
+(
+'The Elder Scrolls V: Skyrim',
+'RPG de fantasia medieval em mundo aberto.',
+'2011-11-11',
+'16'
+),
+(
+'Starfield',
+'RPG espacial futurista focado em exploração.',
+'2023-09-06',
+'16'
+),
+(
+'DOOM Eternal',
+'FPS frenético focado em combate contra demônios.',
+'2020-03-20',
+'18'
+),
+(
+'The Legend of Zelda: Breath of the Wild',
+'Aventura em mundo aberto focada em exploração.',
+'2017-03-03',
+'10'
+),
+(
+'Super Mario Odyssey',
+'Plataforma 3D focado em exploração e aventura.',
+'2017-10-27',
+'Livre'
+),
+(
+'God of War Ragnarök',
+'Jogo de ação e narrativa inspirado na mitologia nórdica.',
+'2022-11-09',
+'18'
+),
+(
+'The Last of Us Part II',
+'Jogo narrativo pós-apocalíptico focado em sobrevivência.',
+'2020-06-19',
+'18'
+),
+(
+'Marvel Spider-Man 2',
+'Jogo de ação e aventura do universo Homem-Aranha.',
+'2023-10-20',
+'12'
+),
+(
+'Halo Infinite',
+'FPS futurista focado em campanha e multiplayer.',
+'2021-12-08',
+'14'
+),
+(
+'Forza Horizon 5',
+'Jogo de corrida em mundo aberto ambientado no México.',
+'2021-11-09',
+'Livre'
+),
+(
+'Fortnite',
+'Battle Royale online com construção e eventos ao vivo.',
+'2017-07-21',
+'12'
+),
+(
+'Minecraft',
+'Sandbox criativo focado em construção e sobrevivência.',
+'2011-11-18',
+'10'
+),
+(
+'Resident Evil 4 Remake',
+'Terror de sobrevivência focado em ação e narrativa.',
+'2023-03-24',
+'18'
+),
+(
+'Monster Hunter World',
+'RPG de ação focado em caça de monstros cooperativa.',
+'2018-01-26',
+'14'
+),
+(
+'Sonic Frontiers',
+'Aventura em mundo aberto do universo Sonic.',
+'2022-11-08',
+'10'
+),
+(
+'Persona 3 Reload',
+'JRPG focado em narrativa, combate e vida escolar.',
+'2024-02-02',
+'16'
+);
+
+INSERT INTO empresa (nome, tipo_dev_publisher)
+VALUES
+('Rockstar Games', 'Developer/Publisher'),
+('Riot Games', 'Developer'),
+('Valve', 'Developer'),
+('CD Projekt Red', 'Developer/Publisher'),
+('Electronic Arts', 'Publisher'),
+('Activision', 'Publisher'),
+('Bethesda Game Studios', 'Developer'),
+('id Software', 'Developer'),
+('Nintendo', 'Developer/Publisher'),
+('Sony Interactive Entertainment', 'Publisher'),
+('Santa Monica Studio', 'Developer'),
+('Naughty Dog', 'Developer'),
+('Insomniac Games', 'Developer'),
+('Xbox Game Studios', 'Publisher'),
+('343 Industries', 'Developer'),
+('Playground Games', 'Developer'),
+('Epic Games', 'Developer/Publisher'),
+('Mojang Studios', 'Developer'),
+('Capcom', 'Developer/Publisher'),
+('SEGA', 'Publisher'),
+('Sonic Team', 'Developer'),
+('ATLUS', 'Developer');
+
+DELETE FROM tag
+WHERE nome = 'Voxel';
+
+DELETE FROM subgenero
+WHERE nome = 'Dating Sim';
+
+ALTER TABLE jogo
+MODIFY data_lancamento DATE;
+
+ALTER TABLE empresa
+MODIFY nome VARCHAR(200);
+
+INSERT INTO desenvolve
+(fk_empresa_id_empresa, fk_jogo_id_jogo)
+VALUES
+
+-- Rockstar Games 
+(76,1),
+(76,2),
+
+-- Riot Games
+(77,3),
+(77,4),
+
+-- Valve
+(78,5),
+(78,6),
+(78,7),
+
+-- CD Projekt Red
+(79,8),
+(79,9),
+
+-- Electronic Arts
+(80,10),
+(80,11),
+(80,12),
+
+-- Activision
+(81,13),
+(81,14),
+
+-- Bethesda Game Studios
+(82,15),
+(82,16),
+
+-- id Software
+(83,17),
+
+-- Nintendo
+(84,18),
+(84,19),
+
+-- Santa Monica Studio
+(86,20),
+
+-- Naughty Dog
+(87,21),
+
+-- Insomniac Games
+(88,22),
+
+-- 343 Industries
+(90,23),
+
+-- Playground Games
+(91,24),
+
+-- Epic Games
+(92,25),
+
+-- Mojang Studios
+(93,26),
+
+-- Capcom
+(94,27),
+(94,28),
+
+-- Sonic Team
+(96,29),
+
+-- ATLUS
+(97,30);
+
+SELECT * FROM empresa;
+
+INSERT INTO publica
+(fk_empresa_id_empresa, fk_jogo_id_jogo)
+VALUES
+
+-- Rockstar
+(76,1),
+(76,2),
+
+-- Riot
+(77,3),
+(77,4),
+
+-- Valve
+(78,5),
+(78,6),
+(78,7),
+
+-- CD Projekt
+(79,8),
+(79,9),
+
+-- Electronic Arts
+(80,10),
+(80,11),
+(80,12),
+
+-- Activision
+(81,13),
+(81,14),
+
+-- Bethesda
+(82,15),
+(82,16),
+(82,17),
+
+-- Nintendo
+(84,18),
+(84,19),
+
+-- Sony
+(85,20),
+(85,21),
+(85,22),
+
+-- Xbox Game Studios
+(89,23),
+(89,24),
+
+-- Epic Games
+(92,25),
+
+-- Mojang Studios
+(93,26),
+
+-- Capcom
+(94,27),
+(94,28),
+
+-- SEGA
+(95,29),
+(95,30);
+
+SELECT 
+    jogo.nome AS jogo,
+    empresa.nome AS empresa,
+    plataforma.nome AS plataforma
+
+FROM jogo
+
+JOIN desenvolve
+ON jogo.id_jogo = desenvolve.fk_jogo_id_jogo
+
+JOIN empresa
+ON empresa.id_empresa = desenvolve.fk_empresa_id_empresa
+
+JOIN disponivel_em
+ON jogo.id_jogo = disponivel_em.fk_jogo_id_jogo
+
+JOIN plataforma
+ON plataforma.id_plataforma = disponivel_em.fk_plataforma_id_plataforma;
+
+SELECT * FROM desenvolve;
+
+SELECT jogo.nome, empresa.nome
+FROM jogo
+JOIN desenvolve
+ON jogo.id_jogo = desenvolve.fk_jogo_id_jogo
+JOIN empresa
+ON empresa.id_empresa = desenvolve.fk_empresa_id_empresa;
